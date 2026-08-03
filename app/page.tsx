@@ -1,4 +1,4 @@
-import Notebook from "@/components/notebook/notebook";
+import NotebookManager from "@/components/notebook/NotebookManager";
 export default function Home() {
-  return <Notebook />;
+  return <NotebookManager />;
 }

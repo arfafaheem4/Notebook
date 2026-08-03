@@ -3,4 +3,6 @@ export type Cell = {
   code: string;
   output: string;
   status: "idle" | "running" | "success" | "error";
+  type: "code" | "markdown";
+  image?: string;
 };

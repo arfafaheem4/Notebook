@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>DataFlow IDE - Main.ipynb</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;family=Geist:wght@500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-highest": "#dfe2e9",
+                        "surface-container-high": "#e5e8ef",
+                        "on-tertiary-fixed": "#2e1600",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed-variant": "#6c3a00",
+                        "on-tertiary": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "tertiary-container": "#a95f00",
+                        "secondary-fixed": "#c2e8ff",
+                        "tertiary": "#864a00",
+                        "on-surface-variant": "#404850",
+                        "inverse-surface": "#2d3136",
+                        "on-surface": "#181c21",
+                        "on-primary-fixed": "#001d32",
+                        "on-secondary-fixed-variant": "#004d68",
+                        "outline-variant": "#bfc7d1",
+                        "surface-container": "#ebeef5",
+                        "secondary-fixed-dim": "#77d1ff",
+                        "inverse-primary": "#94ccff",
+                        "surface-bright": "#f7f9ff",
+                        "primary-fixed-dim": "#94ccff",
+                        "on-tertiary-container": "#fff6f1",
+                        "inverse-on-surface": "#eef1f8",
+                        "surface-container-low": "#f1f4fb",
+                        "surface": "#f7f9ff",
+                        "primary-fixed": "#cde5ff",
+                        "on-secondary-fixed": "#001e2c",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed": "#ffdcc0",
+                        "secondary": "#006688",
+                        "on-primary-container": "#f3f7ff",
+                        "error-container": "#ffdad6",
+                        "surface-variant": "#dfe2e9",
+                        "primary": "#005d90",
+                        "outline": "#707881",
+                        "secondary-container": "#5dcafd",
+                        "tertiary-fixed-dim": "#ffb877",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-fixed-variant": "#004b74",
+                        "on-error-container": "#93000a",
+                        "on-secondary": "#ffffff",
+                        "on-background": "#181c21",
+                        "on-secondary-container": "#005370",
+                        "surface-tint": "#006399",
+                        "surface-dim": "#d7dae1",
+                        "background": "#f7f9ff",
+                        "primary-container": "#0077b6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "lg": "24px",
+                        "toolbar_height": "48px",
+                        "gutter": "16px",
+                        "sidebar_width": "260px",
+                        "xl": "32px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "unit": "4px"
+                    },
+                    "fontFamily": {
+                        "code-base": ["JetBrains Mono"],
+                        "body-base": ["Inter"],
+                        "headline-md": ["Geist"],
+                        "display-lg": ["Geist"],
+                        "label-caps": ["Inter"],
+                        "body-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "code-base": ["13px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-base": ["14px", {"lineHeight": "22px", "fontWeight": "400"}],
+                        "headline-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+                        "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "label-caps": ["11px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "body-sm": ["13px", {"lineHeight": "20px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { background-color: #F5F8FF; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; font-size: 18px; }
+        .cell-container:hover .cell-toolbar { opacity: 1; transform: translateY(0); }
+        .code-editor { font-family: 'JetBrains Mono', monospace; tab-size: 4; }
+        .active-cell { border-left: 2px solid #0077B6 !important; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #bfc7d1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #707881; }
+    </style>
+</head>
+<body class="font-body-base text-on-surface h-screen flex overflow-hidden">
+<!-- SideNavBar -->
+<aside class="hidden md:flex flex-col h-full w-sidebar_width py-md bg-surface-container-low border-r border-outline-variant fixed left-0 top-0 z-30">
+<div class="px-md mb-lg">
+<h1 class="font-headline-md text-headline-md font-bold text-primary">DataFlow IDE</h1>
+<p class="text-body-sm text-on-surface-variant">Project Alpha</p>
+</div>
+<nav class="flex-1 space-y-xs px-2">
+<!-- Explorer Tab (Active) -->
+<div class="bg-primary-container text-on-primary-container rounded-lg mx-2 flex items-center px-3 py-2 cursor-pointer transition-all translate-x-1 duration-150">
+<span class="material-symbols-outlined mr-3">folder</span>
+<span class="font-body-sm">Explorer</span>
+</div>
+<div class="text-on-surface-variant hover:bg-surface-container-high rounded-lg mx-2 flex items-center px-3 py-2 cursor-pointer transition-all">
+<span class="material-symbols-outlined mr-3">database</span>
+<span class="font-body-sm">Variables</span>
+</div>
+<div class="text-on-surface-variant hover:bg-surface-container-high rounded-lg mx-2 flex items-center px-3 py-2 cursor-pointer transition-all">
+<span class="material-symbols-outlined mr-3">key</span>
+<span class="font-body-sm">Secrets</span>
+</div>
+<div class="text-on-surface-variant hover:bg-surface-container-high rounded-lg mx-2 flex items-center px-3 py-2 cursor-pointer transition-all">
+<span class="material-symbols-outlined mr-3">settings</span>
+<span class="font-body-sm">Settings</span>
+</div>
+<div class="mt-lg pt-lg border-t border-outline-variant/30 px-2 space-y-1">
+<p class="font-label-caps text-label-caps text-outline ml-3 mb-2 uppercase">Files</p>
+<div class="flex items-center px-3 py-1.5 text-body-sm text-on-surface hover:bg-surface-container-highest cursor-pointer rounded-lg bg-surface-container-highest">
+<span class="material-symbols-outlined mr-3 text-primary" style="font-variation-settings: 'FILL' 1;">description</span>
+                    Main.ipynb
+                </div>
+<div class="flex items-center px-3 py-1.5 text-body-sm text-on-surface-variant hover:bg-surface-container-highest cursor-pointer rounded-lg">
+<span class="material-symbols-outlined mr-3">terminal</span>
+                    Analytics.py
+                </div>
+<div class="flex items-center px-3 py-1.5 text-body-sm text-on-surface-variant hover:bg-surface-container-highest cursor-pointer rounded-lg">
+<span class="material-symbols-outlined mr-3">analytics</span>
+                    Models.jl
+                </div>
+</div>
+</nav>
+<div class="px-md mt-auto">
+<button class="w-full bg-primary text-on-primary py-2 px-4 rounded-lg font-label-caps text-label-caps flex items-center justify-center gap-2 hover:brightness-110 transition-all active:scale-95 shadow-sm">
+<span class="material-symbols-outlined">upload</span>
+                Upload Files
+            </button>
+<div class="mt-md flex items-center gap-3 border-t border-outline-variant/30 pt-md">
+<img class="w-8 h-8 rounded-full border border-outline-variant" data-alt="A professional headshot of a software engineer in a brightly lit, modern minimalist office setting, soft natural lighting, high key aesthetic, wearing a charcoal sweater, serene and focused expression." src="https://lh3.googleusercontent.com/aida-public/AB6AXuChpjNb5IuMrRUo3cSqlq7DLWvWNrlewpbJjaefvREDGHDYGtXSxgS1j8Q0VhvuBDeuUkQHBGmDn6iUeZMclx4AOPq-mR5CF4aJc6FHnRmqCWdf1SOZPB2ZEO8JHFElGrMT-Q93pen5PECFz-C42mif2lZDV7i4tG7FST0vq3PzFIZtIJyvpuqGO4_1gaY7VR7mo39g3iCvZZENw5VyHBde5FOmrRFQkbliaE-oH6AmMmYypBWYcJcefQ"/>
+<div class="flex flex-col">
+<span class="font-body-sm font-semibold">User Profile</span>
+<span class="text-[10px] text-on-surface-variant uppercase tracking-wider">Local Environment</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 md:ml-sidebar_width flex flex-col h-full bg-[#F5F8FF]">
+<!-- TopNavBar -->
+<header class="h-toolbar_height w-full bg-surface border-b border-outline-variant flex justify-between items-center px-md sticky top-0 z-20">
+<div class="flex h-full items-center">
+<!-- Tab 1: Active -->
+<div class="text-on-surface border-t-2 border-primary bg-surface-container-lowest px-4 h-full flex items-center gap-2 cursor-pointer transition-all active:opacity-80 active:scale-95">
+<span class="font-label-caps text-label-caps">Main.ipynb</span>
+<span class="material-symbols-outlined text-[14px]">close</span>
+</div>
+<!-- Tab 2: Inactive -->
+<div class="text-on-surface-variant hover:bg-surface-container-low px-4 h-full flex items-center gap-2 cursor-pointer transition-colors duration-200">
+<span class="font-label-caps text-label-caps">Analytics.py</span>
+</div>
+<!-- Add Tab Button -->
+<button class="px-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+<div class="flex items-center gap-md">
+<div class="flex items-center gap-1">
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-full" title="Download">
+<span class="material-symbols-outlined">download</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-full" title="Share">
+<span class="material-symbols-outlined">ios_share</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-full" title="Dark Mode">
+<span class="material-symbols-outlined">dark_mode</span>
+</button>
+</div>
+<button class="bg-primary-container text-on-primary-container px-4 py-1.5 rounded-lg font-label-caps text-label-caps flex items-center gap-2 hover:brightness-110 active:scale-95 transition-all">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+                    Run All
+                </button>
+</div>
+</header>
+<!-- Notebook Area -->
+<div class="flex-1 overflow-y-auto scroll-smooth py-lg px-md md:px-lg">
+<div class="max-w-[1100px] mx-auto space-y-lg pb-xl">
+<!-- Cell 1: Code -->
+<div class="cell-container active-cell group relative bg-surface-container-lowest border border-outline-variant rounded-xl shadow-[0px_4px_12px_rgba(0,0,0,0.05)] transition-all">
+<!-- Toolbar -->
+<div class="cell-toolbar opacity-0 transform -translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 absolute -top-10 right-4 flex items-center bg-surface border border-outline-variant rounded-lg p-1 shadow-md z-10 transition-all duration-200 backdrop-blur-sm bg-opacity-90">
+<button class="p-1.5 text-on-surface-variant hover:bg-surface-container-high rounded transition-colors" title="Run Cell">
+<span class="material-symbols-outlined text-green-600" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+<div class="w-px h-4 bg-outline-variant mx-1"></div>
+<button class="p-1.5 text-on-surface-variant hover:bg-surface-container-high rounded transition-colors" title="Move Up"><span class="material-symbols-outlined">arrow_upward</span></button>
+<button class="p-1.5 text-on-surface-variant hover:bg-surface-container-high rounded transition-colors" title="Move Down"><span class="material-symbols-outlined">arrow_downward</span></button>
+<button class="p-1.5 text-on-surface-variant hover:bg-surface-container-high rounded transition-colors" title="Duplicate"><span class="material-symbols-outlined">content_copy</span></button>
+<button class="p-1.5 text-error hover:bg-error-container rounded transition-colors" title="Delete"><span class="material-symbols-outlined">delete</span></button>
+</div>
+<div class="flex">
+<div class="w-12 pt-4 flex flex-col items-center select-none text-on-surface-variant/40 font-code-base text-code-base">
+                            [1]
+                        </div>
+<div class="flex-1 py-4 pr-4">
+<div class="code-editor text-code-base text-[#1a1a1a] leading-relaxed">
+<span class="text-[#005d90]">import</span> pandas <span class="text-[#005d90]">as</span> pd<br/>
+<span class="text-[#005d90]">import</span> matplotlib.pyplot <span class="text-[#005d90]">as</span> plt<br/><br/>
+<span class="text-[#707881]"># Load datasets</span><br/>
+                                data = pd.read_csv(<span class="text-[#864a00]">'/analytics_data.csv'</span>)<br/>
+<span class="text-[#005d90]">print</span>(data.head())
+                            </div>
+</div>
+</div>
+<!-- Output Area -->
+<div class="bg-inverse-surface text-inverse-on-surface p-md rounded-b-xl overflow-hidden font-code-base text-[12px]">
+<div class="mb-2 opacity-60">Output:</div>
+<div class="overflow-x-auto">
+<table class="w-full border-collapse">
+<thead>
+<tr class="border-b border-outline/30 text-left">
+<th class="p-1 pr-4">index</th>
+<th class="p-1 pr-4">date</th>
+<th class="p-1 pr-4">value</th>
+<th class="p-1 pr-4">status</th>
+</tr>
+</thead>
+<tbody>
+<tr class="border-b border-outline/10">
+<td class="p-1">0</td>
+<td class="p-1">2023-10-01</td>
+<td class="p-1">1,240</td>
+<td class="p-1 text-green-400">stable</td>
+</tr>
+<tr class="border-b border-outline/10">
+<td class="p-1">1</td>
+<td class="p-1">2023-10-02</td>
+<td class="p-1">1,312</td>
+<td class="p-1 text-green-400">stable</td>
+</tr>
+<tr>
+<td class="p-1">2</td>
+<td class="p-1">2023-10-03</td>
+<td class="p-1">1,288</td>
+<td class="p-1 text-yellow-400">warning</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Cell 2: Markdown -->
+<div class="cell-container group relative bg-surface-container-lowest border border-outline-variant rounded-xl shadow-[0px_4px_12px_rgba(0,0,0,0.05)] hover:shadow-md transition-all">
+<!-- Toolbar -->
+<div class="cell-toolbar opacity-0 transform -translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 absolute -top-10 right-4 flex items-center bg-surface border border-outline-variant rounded-lg p-1 shadow-md z-10 transition-all duration-200 backdrop-blur-sm bg-opacity-90">
+<button class="p-1.5 text-on-surface-variant hover:bg-surface-container-high rounded transition-colors" title="Edit Cell"><span class="material-symbols-outlined">edit</span></button>
+<div class="w-px h-4 bg-outline-variant mx-1"></div>
+<button class="p-1.5 text-on-surface-variant hover:bg-surface-container-high rounded transition-colors" title="Move Up"><span class="material-symbols-outlined">arrow_upward</span></button>
+<button class="p-1.5 text-on-surface-variant hover:bg-surface-container-high rounded transition-colors" title="Move Down"><span class="material-symbols-outlined">arrow_downward</span></button>
+<button class="p-1.5 text-on-surface-variant hover:bg-surface-container-high rounded transition-colors" title="Duplicate"><span class="material-symbols-outlined">content_copy</span></button>
+<button class="p-1.5 text-error hover:bg-error-container rounded transition-colors" title="Delete"><span class="material-symbols-outlined">delete</span></button>
+</div>
+<div class="flex">
+<div class="w-12 pt-4 flex flex-col items-center text-on-surface-variant/20 select-none">
+<span class="material-symbols-outlined text-[16px]">notes</span>
+</div>
+<div class="flex-1 py-md pr-md prose prose-slate">
+<h2 class="text-headline-md font-headline-md text-primary mb-2">Data Exploration</h2>
+<p class="text-body-base text-on-surface-variant">Let's visualize the distribution of our core metrics to identify trends and potential outliers in the dataset.</p>
+</div>
+</div>
+</div>
+<!-- Cell 3: Code with Visual Output -->
+<div class="cell-container group relative bg-surface-container-lowest border border-outline-variant rounded-xl shadow-[0px_4px_12px_rgba(0,0,0,0.05)] hover:shadow-md transition-all">
+<!-- Toolbar -->
+<div class="cell-toolbar opacity-0 transform -translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 absolute -top-10 right-4 flex items-center bg-surface border border-outline-variant rounded-lg p-1 shadow-md z-10 transition-all duration-200 backdrop-blur-sm bg-opacity-90">
+<button class="p-1.5 text-on-surface-variant hover:bg-surface-container-high rounded transition-colors" title="Run Cell"><span class="material-symbols-outlined">play_arrow</span></button>
+<div class="w-px h-4 bg-outline-variant mx-1"></div>
+<button class="p-1.5 text-on-surface-variant hover:bg-surface-container-high rounded transition-colors" title="Move Up"><span class="material-symbols-outlined">arrow_upward</span></button>
+<button class="p-1.5 text-on-surface-variant hover:bg-surface-container-high rounded transition-colors" title="Move Down"><span class="material-symbols-outlined">arrow_downward</span></button>
+<button class="p-1.5 text-on-surface-variant hover:bg-surface-container-high rounded transition-colors" title="Duplicate"><span class="material-symbols-outlined">content_copy</span></button>
+<button class="p-1.5 text-error hover:bg-error-container rounded transition-colors" title="Delete"><span class="material-symbols-outlined">delete</span></button>
+</div>
+<div class="flex">
+<div class="w-12 pt-4 flex flex-col items-center select-none text-on-surface-variant/40 font-code-base text-code-base">
+                            [2]
+                        </div>
+<div class="flex-1 py-4 pr-4">
+<div class="code-editor text-code-base text-[#1a1a1a] leading-relaxed">
+                                plt.figure(figsize=(<span class="text-[#864a00]">10</span>, <span class="text-[#864a00]">4</span>))<br/>
+                                plt.plot(data[<span class="text-[#864a00]">'date'</span>], data[<span class="text-[#864a00]">'value'</span>], color=<span class="text-[#864a00]">'#0077B6'</span>)<br/>
+                                plt.title(<span class="text-[#864a00]">'Daily Active Users'</span>)<br/>
+                                plt.show()
+                            </div>
+</div>
+</div>
+<!-- Output Area: Visualization -->
+<div class="border-t border-outline-variant bg-surface-bright p-lg rounded-b-xl flex flex-col items-center">
+<div class="bg-white p-6 rounded-lg shadow-sm w-full border border-outline-variant/30 relative overflow-hidden group/chart">
+<div class="absolute top-4 right-4 flex gap-2 opacity-0 group-hover/chart:opacity-100 transition-opacity">
+<button class="p-1 bg-surface rounded hover:bg-surface-container-high border border-outline-variant/50"><span class="material-symbols-outlined text-[14px]">zoom_in</span></button>
+<button class="p-1 bg-surface rounded hover:bg-surface-container-high border border-outline-variant/50"><span class="material-symbols-outlined text-[14px]">save</span></button>
+</div>
+<div class="w-full h-48 relative flex items-end justify-between px-2">
+<!-- Mock Chart Bars/Line -->
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+<svg class="w-full h-full overflow-visible" viewbox="0 0 1000 200">
+<path class="drop-shadow-md" d="M0,150 Q100,130 200,160 T400,120 T600,80 T800,100 T1000,40" fill="none" stroke="#0077B6" stroke-width="3"></path>
+<circle cx="200" cy="160" fill="#0077B6" r="4"></circle>
+<circle cx="600" cy="80" fill="#0077B6" r="4"></circle>
+<circle cx="1000" cy="40" fill="#0077B6" r="4"></circle>
+</svg>
+</div>
+<div class="w-full h-full border-l border-b border-outline-variant/50 flex flex-col justify-between">
+<div class="flex justify-between items-end w-full h-full pb-1">
+<span class="text-[10px] text-outline">Oct 01</span>
+<span class="text-[10px] text-outline">Oct 15</span>
+<span class="text-[10px] text-outline">Oct 31</span>
+</div>
+</div>
+</div>
+<div class="mt-4 text-center">
+<span class="font-body-sm font-semibold text-on-surface">Daily Active Users Growth (Monthly)</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Add Cell CTA -->
+<div class="flex justify-center gap-4 py-8">
+<button class="group flex items-center gap-2 px-6 py-2.5 rounded-full border-2 border-dashed border-primary/30 text-primary hover:border-primary hover:bg-primary-container/10 transition-all font-label-caps text-label-caps">
+<span class="material-symbols-outlined">add_circle</span>
+                        Add Code Cell
+                    </button>
+<button class="group flex items-center gap-2 px-6 py-2.5 rounded-full border-2 border-dashed border-outline-variant text-on-surface-variant hover:border-primary-container hover:bg-primary-container/10 hover:text-primary transition-all font-label-caps text-label-caps">
+<span class="material-symbols-outlined">subject</span>
+                        Add Markdown
+                    </button>
+</div>
+</div>
+</div>
+</main>
+<!-- Floating Action Button (FAB) - Contextual -->
+<div class="fixed bottom-8 right-8 z-30">
+<button class="bg-primary hover:bg-primary-container text-on-primary w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110 active:scale-95 group">
+<span class="material-symbols-outlined transition-transform group-hover:rotate-12">bolt</span>
+</button>
+</div>
+<script>
+        // Micro-interactions and Tab Management
+        document.addEventListener('DOMContentLoaded', () => {
+            const cells = document.querySelectorAll('.cell-container');
+            
+            cells.forEach(cell => {
+                cell.addEventListener('click', () => {
+                    cells.forEach(c => c.classList.remove('active-cell'));
+                    cell.classList.add('active-cell');
+                });
+            });
+
+            // Tab switching logic (simple UI toggle)
+            const tabs = document.querySelectorAll('header .flex.h-full > div');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => {
+                        t.classList.remove('text-on-surface', 'border-t-2', 'border-primary', 'bg-surface-container-lowest');
+                        t.classList.add('text-on-surface-variant', 'hover:bg-surface-container-low');
+                    });
+                    tab.classList.remove('text-on-surface-variant', 'hover:bg-surface-container-low');
+                    tab.classList.add('text-on-surface', 'border-t-2', 'border-primary', 'bg-surface-container-lowest');
+                });
+            });
+        });
+    </script>
+</body></html>

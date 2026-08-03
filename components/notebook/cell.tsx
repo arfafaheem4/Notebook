@@ -1,22 +1,36 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { Play, Trash2, Copy } from "lucide-react";
+import { Play, Trash2, Copy, ArrowUp, ArrowDown } from "lucide-react";
+import { marked } from "marked";
 import { runPythonCode } from "@/lib/execution/pyodideRunner";
+
 
 const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
 
 type Props = {
+  id: number;
   code: string;
+  type: "code" | "markdown";
+  output?: string;
+  image?: string;
   onChange: (code: string) => void;
+  onRunComplete: (output: string, image?: string) => void;
   onDelete: () => void;
   onDuplicate: () => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
 };
 
-export default function Cell({ code, onChange, onDelete, onDuplicate }: Props) {
-  const [output, setOutput] = useState<{ text: string; image?: string }>({ text: "" });
+export default function Cell({ id, code, type, output: savedOutput, image: savedImage, onChange, onRunComplete, onDelete, onDuplicate, onMoveUp, onMoveDown }: Props) {
+  const [output, setOutput] = useState<{ text: string; image?: string }>({ text: savedOutput || "", image: savedImage });
   const [running, setRunning] = useState(false);
+  const [preview, setPreview] = useState(type === "markdown");
   const editorRef = useRef<any>(null);
+
+  useEffect(() => {
+  setOutput({ text: savedOutput || "", image: savedImage });
+}, [savedOutput, savedImage]);
 
   function handleMount(editor: any) {
     editorRef.current = editor;
@@ -24,18 +38,35 @@ export default function Cell({ code, onChange, onDelete, onDuplicate }: Props) {
   }
 
   async function handleRun() {
+    if (type === "markdown") { setPreview(true); return; }
     setRunning(true);
     const result = await runPythonCode(code);
     setOutput(result);
+    onRunComplete(result.text, result.image);
     setRunning(false);
+  }
+
+  if (type === "markdown" && preview) {
+    return (
+      <div className="border border-gray-300 rounded-xl p-4" onDoubleClick={() => setPreview(false)}>
+        <div dangerouslySetInnerHTML={{ __html: marked(code || "*Empty markdown cell — double-click to edit*") }} />
+        <div className="flex gap-2">
+          <button onClick={onMoveUp} className="p-2 bg-gray-300 rounded-md"><ArrowUp size={16} /></button>
+          <button onClick={onMoveDown} className="p-2 bg-gray-300 rounded-md"><ArrowDown size={16} /></button>
+          <button onClick={onDuplicate} className="p-2 bg-gray-300 rounded-md"><Copy size={16} /></button>
+          <button onClick={onDelete} className="p-2 bg-red-500 text-white rounded-md"><Trash2 size={16} /></button>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div style={{ width: "100%" }} className="border border-gray-300 rounded-xl overflow-hidden shadow-sm">
       <Editor
+        path={`cell-${id}`}
         height="150px"
         width="100%"
-        language="python"
+        language={type === "markdown" ? "markdown" : "python"}
         value={code}
         onChange={(v) => onChange(v || "")}
         onMount={handleMount}
@@ -46,12 +77,10 @@ export default function Cell({ code, onChange, onDelete, onDuplicate }: Props) {
           <Play size={16} />
         </button>
         <div className="flex gap-2">
-          <button onClick={onDuplicate} className="p-2 bg-gray-300 rounded-md">
-            <Copy size={16} />
-          </button>
-          <button onClick={onDelete} className="p-2 bg-red-500 text-white rounded-md">
-            <Trash2 size={16} />
-          </button>
+          <button onClick={onMoveUp} className="p-2 bg-gray-300 rounded-md"><ArrowUp size={16} /></button>
+          <button onClick={onMoveDown} className="p-2 bg-gray-300 rounded-md"><ArrowDown size={16} /></button>
+          <button onClick={onDuplicate} className="p-2 bg-gray-300 rounded-md"><Copy size={16} /></button>
+          <button onClick={onDelete} className="p-2 bg-red-500 text-white rounded-md"><Trash2 size={16} /></button>
         </div>
       </div>
       {output.text && <pre className="bg-black text-green-400 text-sm p-3 whitespace-pre-wrap">{output.text}</pre>}
