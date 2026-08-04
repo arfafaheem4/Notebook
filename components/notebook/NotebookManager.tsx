@@ -1,12 +1,9 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { Plus, X } from "lucide-react";
 import Notebook from "./notebook";
 import ConfirmDialog from "./ConfirmDialog";
-import DownloadMenu from "./DownloadMenu";
-import ShareButton from "./ShareButton";
 
-type CellData = { id: number; code: string; type: "code" | "markdown"; output?: string; image?: string };
+type CellData = { id: number; code: string; type: "code" | "markdown"; output?: string; image?: string; html?: string };
 type NotebookData = { id: number; name: string; cells: CellData[] };
 
 export default function NotebookManager() {
@@ -83,58 +80,22 @@ export default function NotebookManager() {
 
   return (
     <div>
-      <div className="flex items-center justify-between border-b border-gray-300 dark:border-gray-700 bg-background px-2 py-2">
-        {/* Tabs */}
-        <div className="flex items-center gap-1">
-          {notebooks.map((n) => (
-            <div key={n.id}>
-              {n.id === activeId && renamingId === n.id ? (
-                <input
-                  autoFocus
-                  defaultValue={n.name}
-                  onBlur={(e) => renameNotebook(n.id, e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
-                  className="px-3 py-1.5 rounded-md border text-sm"
-                />
-              ) : (
-                <div
-                  onClick={() => setActiveId(n.id)}
-                  onDoubleClick={() => setRenamingId(n.id)}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-md cursor-pointer text-sm transition-colors ${
-                    n.id === activeId
-                      ? "bg-gray-800 dark:bg-gray-700 text-white"
-                      : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-                  }`}
-                >
-                  {n.name}
-                  <X
-                    size={14}
-                    onClick={(e) => { e.stopPropagation(); setConfirmTarget(n.id); }}
-                    className="hover:opacity-70"
-                  />
-                </div>
-              )}
-            </div>
-          ))}
-          <button onClick={addNotebook} className="p-1.5 rounded-md text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800">
-            <Plus size={16} />
-          </button>
-        </div>
-
-        {/* Download + Share */}
-        <div className="flex items-center gap-2">
-          <ShareButton cells={active.cells} notebookName={active.name} />
-        </div>
-      </div>
-
       <Notebook
-  notebookId={active.id.toString()}
-  cells={active.cells}
-  setCells={(cells) => updateCells(active.id, cells)}
-  notebookName={active.name}
-  saveStatus={saveStatus}
-  onForceSave={forceSave}
-/>
+        notebookId={active.id.toString()}
+        cells={active.cells}
+        setCells={(cells) => updateCells(active.id, cells)}
+        notebookName={active.name}
+        saveStatus={saveStatus}
+        onForceSave={forceSave}
+        notebooks={notebooks}
+        activeId={activeId}
+        renamingId={renamingId}
+        onAddNotebook={addNotebook}
+        onSelectNotebook={setActiveId}
+        onStartRenaming={setRenamingId}
+        onRenameNotebook={renameNotebook}
+        onDeleteNotebook={setConfirmTarget}
+      />
 
       <ConfirmDialog
         open={confirmTarget !== null}

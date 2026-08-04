@@ -1,6 +1,7 @@
 "use client";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import { Moon, Sun } from "lucide-react";
 
 export default function ThemeToggle() {
   const { theme, setTheme } = useTheme();
@@ -10,15 +11,12 @@ export default function ThemeToggle() {
 
   const isDark = theme === "dark";
   return (
-    <div className="flex items-center gap-2 text-sm">
-      <span className={!isDark ? "font-bold" : "text-gray-400"}>Light</span>
-      <button
-        onClick={() => setTheme(isDark ? "light" : "dark")}
-        className={`w-12 h-6 rounded-full flex items-center px-1 transition ${isDark ? "bg-gray-600 justify-end" : "bg-blue-400 justify-start"}`}
-      >
-        <div className="w-4 h-4 bg-white rounded-full" />
-      </button>
-      <span className={isDark ? "font-bold" : "text-gray-400"}>Dark</span>
-    </div>
+    <button
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800 dark:text-amber-300 dark:hover:bg-slate-700"
+    >
+      {isDark ? <Sun size={17} /> : <Moon size={17} />}
+    </button>
   );
 }

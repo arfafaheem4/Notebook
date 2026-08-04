@@ -38,13 +38,14 @@ export default function DownloadMenu({ cells, notebookName }: { cells: CellData[
 
   return (
     <div className="relative" ref={ref}>
-      <button onClick={() => setShow(!show)} className="flex items-center gap-1 px-3 py-1 bg-gray-200 rounded-md text-sm">
+      <button onClick={() => setShow(!show)} className="flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700">
         <Download size={14} />
+        Export
       </button>
       {show && (
-        <div className="absolute right-0 mt-1 bg-white dark:bg-gray-800 border rounded-md shadow-md z-10 whitespace-nowrap">
-          <button onClick={() => { downloadPy(); setShow(false); }} className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Download: .py</button>
-          <button onClick={() => { downloadIpynb(); setShow(false); }} className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Download: .ipynb</button>
+        <div className="absolute right-0 z-10 mt-2 overflow-hidden whitespace-nowrap rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800">
+          <button onClick={() => { downloadPy(); setShow(false); }} className="block w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 dark:text-slate-100 dark:hover:bg-slate-700">Download: .py</button>
+          <button onClick={() => { downloadIpynb(); setShow(false); }} className="block w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 dark:text-slate-100 dark:hover:bg-slate-700">Download: .ipynb</button>
         </div>
       )}
     </div>

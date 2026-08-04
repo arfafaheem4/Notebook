@@ -42,7 +42,7 @@ def get_kernel(notebook_id: str):
         kc = km.client()
         kc.start_channels()
         kc.wait_for_ready(timeout=60)
-        kc.execute("%matplotlib inline")
+        kc.execute("%matplotlib inline", silent=True)
         kc.get_shell_msg(timeout=30)
         drain_iopub(kc)
         kernels[notebook_id] = {"km": km, "kc": kc}
@@ -60,6 +60,8 @@ async def websocket_endpoint(websocket: WebSocket, notebook_id: str):
 
         kc = kernels[notebook_id]["kc"]  # always get the current kernel client
         kc.execute(code)
+        shell_reply_task = asyncio.create_task(asyncio.to_thread(kc.get_shell_msg, timeout=30))
+        execution_count = None
         while True:
             try:
                 msg = await asyncio.to_thread(kc.get_iopub_msg, timeout=30)
@@ -73,13 +75,22 @@ async def websocket_endpoint(websocket: WebSocket, notebook_id: str):
             elif msg_type == "error":
                 await websocket.send_text(json.dumps({"id": req_id, "output": strip_ansi("\n".join(content["traceback"])), "image": None, "done": False}))
             elif msg_type == "execute_result":
-                await websocket.send_text(json.dumps({"id": req_id, "output": content["data"].get("text/plain", ""), "image": None, "done": False}))
+                await websocket.send_text(json.dumps({"id": req_id, "output": content["data"].get("text/plain", ""), "html": content["data"].get("text/html"), "image": None, "done": False}))
             elif msg_type == "display_data":
                 img = content["data"].get("image/png")
                 txt = "" if img else content["data"].get("text/plain", "")
-                await websocket.send_text(json.dumps({"id": req_id, "output": txt, "image": img, "done": False}))
+                await websocket.send_text(json.dumps({"id": req_id, "output": txt, "html": content["data"].get("text/html"), "image": img, "done": False}))
+            elif msg_type == "execute_input":
+                execution_count = content.get("execution_count")
             elif msg_type == "status" and content["execution_state"] == "idle":
-                await websocket.send_text(json.dumps({"id": req_id, "output": "", "image": None, "done": True}))
+                try:
+                    shell_reply = await shell_reply_task
+                    shell_execution_count = shell_reply["content"].get("execution_count")
+                    if shell_execution_count is not None:
+                        execution_count = shell_execution_count
+                except Empty:
+                    pass
+                await websocket.send_text(json.dumps({"id": req_id, "output": "", "image": None, "done": True, "execution_count": execution_count}))
                 break
 
 @app.post("/interrupt/{notebook_id}")
@@ -98,7 +109,7 @@ async def restart_kernel(notebook_id: str):
     kc = km.client()
     kc.start_channels()
     await asyncio.to_thread(kc.wait_for_ready, timeout=60)
-    kc.execute("%matplotlib inline")
+    kc.execute("%matplotlib inline", silent=True)
     await asyncio.to_thread(kc.get_shell_msg, timeout=30)
     await asyncio.to_thread(drain_iopub, kc)
     kernels[notebook_id]["kc"] = kc

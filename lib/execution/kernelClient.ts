@@ -1,7 +1,7 @@
 const sockets: Map<string, WebSocket> = new Map();
 const connecting: Map<string, Promise<WebSocket>> = new Map();
 let msgId = 0;
-const pending = new Map<number, { onChunk: (text: string, image?: string) => void; resolve: () => void }>();
+const pending = new Map<number, { onChunk: (text: string, image?: string, html?: string) => void; resolve: (executionCount?: number) => void }>();
 
 function getSocket(notebookId: string): Promise<WebSocket> {
   const existing = sockets.get(notebookId);
@@ -21,9 +21,9 @@ function getSocket(notebookId: string): Promise<WebSocket> {
       const data = JSON.parse(event.data);
       const handler = pending.get(data.id);
       if (!handler) return;
-      if (data.output || data.image) handler.onChunk(data.output, data.image);
+      if (data.output || data.image || data.html) handler.onChunk(data.output, data.image, data.html);
       if (data.done) {
-        handler.resolve();
+        handler.resolve(data.execution_count);
         pending.delete(data.id);
       }
     };
@@ -36,11 +36,11 @@ function getSocket(notebookId: string): Promise<WebSocket> {
 export async function runPythonCode(
   notebookId: string,
   code: string,
-  onChunk: (text: string, image?: string) => void
-): Promise<void> {
+  onChunk: (text: string, image?: string, html?: string) => void
+): Promise<number | undefined> {
   const ws = await getSocket(notebookId);
   const id = ++msgId;
-  return new Promise((resolve) => {
+  return new Promise<number | undefined>((resolve) => {
     pending.set(id, { onChunk, resolve });
     ws.send(JSON.stringify({ code, id }));
   });
