@@ -1,14 +1,14 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { Play, Trash2, Copy, ArrowUp, ArrowDown } from "lucide-react";
 import { marked } from "marked";
-import { runPythonCode } from "@/lib/execution/pyodideRunner";
-
+import { runPythonCode, stopExecution } from "@/lib/execution/kernelClient";
+import { Play, Square, Trash2, Copy, ArrowUp, ArrowDown } from "lucide-react";
 
 const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
 
 type Props = {
+  notebookId: string;
   id: number;
   code: string;
   type: "code" | "markdown";
@@ -22,15 +22,15 @@ type Props = {
   onMoveDown: () => void;
 };
 
-export default function Cell({ id, code, type, output: savedOutput, image: savedImage, onChange, onRunComplete, onDelete, onDuplicate, onMoveUp, onMoveDown }: Props) {
+export default function Cell({ notebookId, id, code, type, output: savedOutput, image: savedImage, onChange, onRunComplete, onDelete, onDuplicate, onMoveUp, onMoveDown }: Props) {
   const [output, setOutput] = useState<{ text: string; image?: string }>({ text: savedOutput || "", image: savedImage });
   const [running, setRunning] = useState(false);
   const [preview, setPreview] = useState(type === "markdown");
   const editorRef = useRef<any>(null);
 
   useEffect(() => {
-  setOutput({ text: savedOutput || "", image: savedImage });
-}, [savedOutput, savedImage]);
+    setOutput({ text: savedOutput || "", image: savedImage });
+  }, [savedOutput, savedImage]);
 
   function handleMount(editor: any) {
     editorRef.current = editor;
@@ -40,9 +40,15 @@ export default function Cell({ id, code, type, output: savedOutput, image: saved
   async function handleRun() {
     if (type === "markdown") { setPreview(true); return; }
     setRunning(true);
-    const result = await runPythonCode(code);
-    setOutput(result);
-    onRunComplete(result.text, result.image);
+    let text = "";
+    let image: string | undefined;
+    const currentCode = editorRef.current?.getValue() ?? code;
+    await runPythonCode(notebookId, currentCode, (chunk, img) => {
+      text += chunk;
+      if (img) image = img;
+      setOutput({ text, image });
+    });
+    onRunComplete(text, image);
     setRunning(false);
   }
 
@@ -73,9 +79,16 @@ export default function Cell({ id, code, type, output: savedOutput, image: saved
         options={{ automaticLayout: true }}
       />
       <div className="flex justify-between items-center bg-gray-50 px-4 py-2">
-        <button onClick={handleRun} disabled={running} className="p-2 bg-green-600 text-white rounded-md disabled:opacity-50">
-          <Play size={16} />
-        </button>
+        <div className="flex gap-2">
+          <button onClick={handleRun} disabled={running} className="p-2 bg-green-600 text-white rounded-md disabled:opacity-50">
+            <Play size={16} />
+          </button>
+          {running && (
+            <button onClick={() => stopExecution(notebookId)} className="p-2 bg-red-600 text-white rounded-md">
+              <Square size={16} />
+            </button>
+          )}
+        </div>
         <div className="flex gap-2">
           <button onClick={onMoveUp} className="p-2 bg-gray-300 rounded-md"><ArrowUp size={16} /></button>
           <button onClick={onMoveDown} className="p-2 bg-gray-300 rounded-md"><ArrowDown size={16} /></button>
