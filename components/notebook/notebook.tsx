@@ -70,7 +70,7 @@ export default function Notebook({ notebookId, cells, setCells, notebookName, sa
     <div className="min-h-screen overflow-x-hidden bg-slate-50 dark:bg-[#171b25]">
       <ErrorBoundary fallbackMessage="Sidebar failed to load." severity="high">
         <FileSidebar
-        notebookId={notebookId}
+        // notebookId={notebookId}
         notebooks={notebooks}
         activeId={activeId}
         renamingId={renamingId}
