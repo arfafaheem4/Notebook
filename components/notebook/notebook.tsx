@@ -5,6 +5,7 @@ import ThemeToggle from "./ThemeToggle";
 import FileSidebar from "./FileSidebar";
 import DownloadMenu from "./DownloadMenu";
 import ConfirmDialog from "./ConfirmDialog";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import { restartKernel } from "@/lib/execution/kernelClient";
 import { RotateCcw, Plus, Save } from "lucide-react";
 import { useBackendStatus } from "@/lib/hooks/useBackendStatus";
@@ -21,13 +22,14 @@ type Props = {
   activeId: number;
   renamingId: number | null;
   onAddNotebook: () => void;
+  onOpenFile: (file: File) => void;
   onSelectNotebook: (id: number) => void;
   onStartRenaming: (id: number | null) => void;
   onRenameNotebook: (id: number, name: string) => void;
   onDeleteNotebook: (id: number) => void;
 };
 
-export default function Notebook({ notebookId, cells, setCells, notebookName, saveStatus, onForceSave, notebooks, activeId, renamingId, onAddNotebook, onSelectNotebook, onStartRenaming, onRenameNotebook, onDeleteNotebook }: Props) {
+export default function Notebook({ notebookId, cells, setCells, notebookName, saveStatus, onForceSave, notebooks, activeId, renamingId, onAddNotebook, onOpenFile, onSelectNotebook, onStartRenaming, onRenameNotebook, onDeleteNotebook }: Props) {
   const [confirmCellId, setConfirmCellId] = useState<number | null>(null);
   const [executionCountReset, setExecutionCountReset] = useState(0);
   const backendConnected = useBackendStatus();
@@ -58,37 +60,40 @@ export default function Notebook({ notebookId, cells, setCells, notebookName, sa
   }
   const [restarting, setRestarting] = useState(false);
   async function handleRestart() {
-  setRestarting(true);
-  await restartKernel(notebookId);
-  setExecutionCountReset((count) => count + 1);
-  setRestarting(false);
-}
-
+    setRestarting(true);
+    await restartKernel(notebookId);
+    setExecutionCountReset((count) => count + 1);
+    setRestarting(false);
+  }
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-slate-50 dark:bg-[#171b25]">
-      <FileSidebar
+      <ErrorBoundary fallbackMessage="Sidebar failed to load." severity="high">
+        <FileSidebar
         notebookId={notebookId}
         notebooks={notebooks}
         activeId={activeId}
         renamingId={renamingId}
         onAddNotebook={onAddNotebook}
+        onOpenFile={onOpenFile}
         onSelectNotebook={onSelectNotebook}
         onStartRenaming={onStartRenaming}
         onRenameNotebook={onRenameNotebook}
         onDeleteNotebook={onDeleteNotebook}
       />
+      </ErrorBoundary>
+      
       <div className="ml-72 min-h-screen">
       <div style={{ maxWidth: "1300px", width: "100%", margin: "0 auto", padding: "32px" }}>
         <div className="mb-6 flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-700 dark:bg-slate-900">
           <button
-  onClick={handleRestart}
-  disabled={restarting}
-  className="flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
->
-  <RotateCcw size={14} className={restarting ? "animate-spin" : ""} />
-  {restarting ? "Restarting..." : "Restart Kernel"}
-</button>
+            onClick={handleRestart}
+            disabled={restarting}
+            className="flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+          >
+            <RotateCcw size={14} className={restarting ? "animate-spin" : ""} />
+            {restarting ? "Restarting..." : "Restart Kernel"}
+          </button>
           <button
             onClick={onForceSave}
             className="flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
@@ -108,28 +113,30 @@ export default function Notebook({ notebookId, cells, setCells, notebookName, sa
           </div>
         </div>
         {backendConnected === false && (
-  <div className="mb-4 px-4 py-2 bg-red-100 text-red-700 rounded-md text-sm">
-    Backend not running. Start it with <code>uvicorn main:app --reload</code> in the backend folder.
-  </div>
-)}
+          <div className="mb-4 px-4 py-2 bg-red-100 text-red-700 rounded-md text-sm">
+            Backend not running. Start it with <code>uvicorn main:app --reload</code> in the backend folder.
+          </div>
+        )}
         {cells.map((cell, index) => (
           <div key={cell.id} className="mb-2">
-            <Cell
-              notebookId={notebookId}
-              id={cell.id}
-              code={cell.code}
-              type={cell.type}
-              output={cell.output}
-              image={cell.image}
-              html={cell.html}
-              executionCountReset={executionCountReset}
-              onChange={(c) => updateCode(cell.id, c)}
-              onRunComplete={(output, image, html) => updateOutput(cell.id, output, image, html)}
-              onDelete={() => setConfirmCellId(cell.id)}
-              onDuplicate={() => duplicateCell(cell.id)}
-              onMoveUp={() => moveCell(cell.id, "up")}
-              onMoveDown={() => moveCell(cell.id, "down")}
-            />
+            <ErrorBoundary fallbackMessage="This cell failed to render. Your other cells are unaffected." severity="low">
+              <Cell
+                notebookId={notebookId}
+                id={cell.id}
+                code={cell.code}
+                type={cell.type}
+                output={cell.output}
+                image={cell.image}
+                html={cell.html}
+                executionCountReset={executionCountReset}
+                onChange={(c) => updateCode(cell.id, c)}
+                onRunComplete={(output, image, html) => updateOutput(cell.id, output, image, html)}
+                onDelete={() => setConfirmCellId(cell.id)}
+                onDuplicate={() => duplicateCell(cell.id)}
+                onMoveUp={() => moveCell(cell.id, "up")}
+                onMoveDown={() => moveCell(cell.id, "down")}
+              />
+            </ErrorBoundary>
             <div className="group relative z-10 h-0 pl-10">
               <div className="absolute -top-3 left-10 right-0 h-6">
                 <div className="absolute top-1/2 h-px w-full bg-slate-200 transition-colors group-hover:bg-blue-200 dark:bg-slate-700 dark:group-hover:bg-blue-900" />

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,7 +24,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`} suppressHydrationWarning>
       <body className="min-h-full flex flex-col w-full">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          {children}
+          <ErrorBoundary fallbackMessage="Something went wrong. Please refresh the page." severity="high">
+            {children}
+          </ErrorBoundary>
         </ThemeProvider>
       </body>
     </html>

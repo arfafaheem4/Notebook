@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { marked } from "marked";
+import { useTheme } from "next-themes";
 import { runPythonCode, stopExecution } from "@/lib/execution/kernelClient";
 import { Play, Square, Trash2, Copy, ArrowUp, ArrowDown } from "lucide-react";
 
@@ -25,6 +26,8 @@ type Props = {
 };
 
 export default function Cell({ notebookId, id, code, type, output: savedOutput, image: savedImage, html: savedHtml, executionCountReset, onChange, onRunComplete, onDelete, onDuplicate, onMoveUp, onMoveDown }: Props) {
+
+  const { resolvedTheme } = useTheme();
   const [output, setOutput] = useState<{ text: string; image?: string; html?: string }>({ text: savedOutput || "", image: savedImage, html: savedHtml });
   const [running, setRunning] = useState(false);
   const [preview, setPreview] = useState(type === "markdown");
@@ -73,7 +76,7 @@ export default function Cell({ notebookId, id, code, type, output: savedOutput, 
             <button onClick={onDuplicate} className="grid h-7 w-7 place-items-center rounded-md text-slate-500 transition hover:bg-slate-200 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"><Copy size={15} /></button>
             <button onClick={onDelete} className="grid h-7 w-7 place-items-center rounded-md text-slate-400 transition hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40"><Trash2 size={15} /></button>
           </div>
-          <div className="prose prose-sm max-w-none px-5 py-4 text-slate-700 dark:prose-invert dark:text-slate-200" dangerouslySetInnerHTML={{ __html: marked(code || "*Empty markdown cell — double-click to edit*") }} />
+          <div className="prose prose-sm max-w-none px-5 py-4 text-slate-700 dark:prose-invert dark:text-slate-200" dangerouslySetInnerHTML={{ __html: marked(code || "*Empty markdown cell — double-click to edit*") as string }}/>
         </div>
       </div>
     );
@@ -111,6 +114,7 @@ export default function Cell({ notebookId, id, code, type, output: savedOutput, 
           value={code}
           onChange={(v) => onChange(v || "")}
           onMount={handleMount}
+          theme={resolvedTheme === "dark" ? "vs-dark" : "light"}
           options={{ automaticLayout: true }}
         />
         {output.html ? (
@@ -155,7 +159,7 @@ export default function Cell({ notebookId, id, code, type, output: savedOutput, 
             `}</style>
             <div dangerouslySetInnerHTML={{ __html: output.html }} />
           </div>
-        ) : output.text && <pre className="mx-3 mb-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 font-sans text-xs leading-6 text-slate-800 whitespace-pre-wrap dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200" style={{ fontFamily: "Arial, Helvetica, sans-serif" }}>{output.text}</pre>}
+        ) : output.text && <pre className="mx-3 mb-3 overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 font-mono text-[13px] leading-7 tabular-nums text-slate-800 whitespace-pre dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200" style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" }}>{output.text}</pre>}
         {output.image && <img src={`data:image/png;base64,${output.image}`} className="border-t border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900" />}
       </div>
     </div>

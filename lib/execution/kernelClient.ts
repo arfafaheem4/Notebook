@@ -17,14 +17,19 @@ function getSocket(notebookId: string): Promise<WebSocket> {
       connecting.delete(notebookId);
       resolve(ws);
     };
+
     ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      const handler = pending.get(data.id);
-      if (!handler) return;
-      if (data.output || data.image || data.html) handler.onChunk(data.output, data.image, data.html);
-      if (data.done) {
-        handler.resolve(data.execution_count);
-        pending.delete(data.id);
+      try {
+        const data = JSON.parse(event.data);
+        const handler = pending.get(data.id);
+        if (!handler) return;
+        if (data.output || data.image || data.html) handler.onChunk(data.output, data.image, data.html);
+        if (data.done) {
+          handler.resolve(data.execution_count);
+          pending.delete(data.id);
+        }
+      } catch (err) {
+        console.error("Failed to parse WebSocket message:", err, event.data);
       }
     };
   });
