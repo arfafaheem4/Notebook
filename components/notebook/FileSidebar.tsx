@@ -88,7 +88,7 @@ export default function FileSidebar({ notebooks, activeId, renamingId, onAddNote
 
   return (
     <aside className="fixed left-0 top-0 z-40 flex h-screen w-72 flex-col overflow-hidden border-r border-slate-200 bg-white px-3 py-4 text-slate-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
-      <div className="mb-5 px-2 text-slate-900 dark:text-white">
+      <div className="mb-4 px-2 text-slate-900 dark:text-white">
         <div className="flex items-center gap-2.5">
           <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 text-white shadow-sm"><BookOpen size={17} /></span>
           <div>
@@ -109,7 +109,7 @@ export default function FileSidebar({ notebooks, activeId, renamingId, onAddNote
 
       <label className="mb-4 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
         <FolderOpen size={17} />
-        Open File
+        Open File (.py or .ipynb)
         <input
           type="file"
           accept=".py,.ipynb"
